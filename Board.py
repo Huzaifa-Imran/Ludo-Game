@@ -1,4 +1,3 @@
-
 import pygame
 
 whiteColor = (255, 255, 255)
@@ -18,7 +17,7 @@ playerHasKilled = [False, False, False, False]
 blocks = [[], [], [], []]
 
 # location of slots in which tokens cant move until six is rolled
-jailSlots = [[(2, 2), (3, 2), (2, 3), (3, 3)], [(11, 2), (12, 2), (11, 3), (12, 3)], [(2, 11), (3, 11), (2, 12), (3, 12)], [(11, 11), (12, 11), (11, 12), (12, 12)]]
+jailSlots = [[(1.5, 1.5), (3.5, 1.5), (1.5, 3.5), (3.5, 3.5)], [(10.5, 1.5), (12.5, 1.5), (10.5, 3.5), (12.5, 3.5)], [(1.5, 10.5), (3.5, 10.5), (1.5, 12.5), (3.5, 12.5)], [(10.5, 10.5), (12.5, 10.5), (10.5, 12.5), (12.5, 12.5)]]
 # location of slots which are general and can be moved onto by any token
 commonSlots = [(0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 5), (6, 4), (6, 3), (6, 2), (6, 1), (6, 0), (7, 0), (8, 0), (8, 1), (8, 2), (8, 3), (8, 4),
                 (8, 5), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6), (14, 6), (14, 7), (14, 8), (13, 8), (12, 8), (11, 8), (10, 8), (9, 8), (8, 9), (8, 10), (8, 11),
@@ -30,9 +29,26 @@ houseSlots = [[(1, 7), (2, 7), (3, 7), (4, 7), (5, 7)], [(7, 1), (7, 2), (7, 3),
 # index of commonSlots on which tokens spawn from jail
 spawnPos = [1, 14, 40, 27]
 
+def setWindow():
+    global screen, boardX, boardY, smallSquare
+    pygame.init()
+    width = 1000
+    height = 1000
+    smallSquare = 60
+    boardX = (width - smallSquare * 15) / 2
+    boardY = (height - smallSquare * 15) / 2
+    screen = pygame.display.set_mode((width, height))
+    pygame.display.set_caption('Ludo')
 
-def createBoard(screen, x, y, smallSquare):
+def updateScreen():
+    screen.fill(whiteColor)
+    createBoard(boardX, boardY, smallSquare)
+    drawTokens(boardX, boardY, smallSquare)
+    pygame.display.flip()
+    pygame.display.update()
+    pygame.event.clear()
 
+def createBoard(x, y, smallSquare):
     # draw spawn position and houseSlots
     for colour in range(4):
         xAxis, yAxis = commonSlots[spawnPos[colour]]
@@ -44,6 +60,7 @@ def createBoard(screen, x, y, smallSquare):
         for number in range(5):
             xAxis, yAxis = houseSlots[colour][number]
             pygame.draw.rect(screen, houseSlotColor, [x + xAxis*smallSquare, y + yAxis*smallSquare, smallSquare, smallSquare], 0)
+            pygame.draw.rect(screen, blackColor, [x + xAxis*smallSquare, y + yAxis*smallSquare, smallSquare, smallSquare], 1)
 
     # draw common slots
     for i in range(52):
@@ -73,7 +90,9 @@ def createBoard(screen, x, y, smallSquare):
     pygame.draw.polygon(screen, greenColor, [[x + smallSquare*9, y + smallSquare*6], [x + smallSquare*9, y + smallSquare*9], [x + smallSquare*7.5, y + smallSquare*7.5]], 0)
     pygame.draw.rect(screen, whiteColor, [x + smallSquare*10, y + smallSquare*10, smallSquare*4, smallSquare*4], 0)
     
-def drawTokens(screen, x, y, smallSquare):
+    return screen
+
+def drawTokens(x, y, smallSquare):
     for colour in range(4):
         for number in range(4):
             pos = Tokens[colour][number]
@@ -91,7 +110,7 @@ def drawTokens(screen, x, y, smallSquare):
                 i, j = commonSlots[pos]
             pygame.draw.circle(screen, colours[colour], (x + (i+0.5)*smallSquare, y + (j+0.5)*smallSquare), smallSquare/2) 
             
-    
+    return screen
 def moveToken(colour, number, steps):
     pos = Tokens[colour][number]
     if pos == -1:
