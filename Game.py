@@ -2,7 +2,6 @@ import Board
 import random
 import copy as cp
 
-currentColour = 0
 playerNames = []
 playerColours = []
 colourOrder = ['blue', 'yellow', 'green', 'red']
@@ -47,29 +46,58 @@ def gameSetup():
         random.shuffle(availableColours)
         for i in range(players):
             playerColours.append(availableColours[i])
-    nextTurn()
+            print(f"{playerNames[i]} is assigned colour {colourOrder[playerColours[i]]}")
+    initialToss(players)
 
+def initialToss(players):
+    global currentPlayer, currentColour
+    toss = []
+    highestRoll = 0
+    print("Rolling dices for each player.")
+    for i in range(players):
+        roll = random.randint(1,6)
+        if roll > highestRoll:
+            highestRoll = roll
+        print(f"{playerNames[i]} rolled {roll}")
+        toss.append(roll)
+    winners = toss.count(highestRoll)
+    if winners > 1:
+        print("More than 1 player had the highest roll.")
+        initialToss(players)
+    else:
+        winner = toss.index(highestRoll)
+        currentColour = playerColours[winner]
+        currentPlayer = winner
+        
 
 def play():
     gameSetup()
     while len(playerColours) >= 2:
-        input(f"\nCurrent Turn: {playerNames[currentPlayer]}({colourOrder[currentPlayer]}) Press enter to roll dice.")
+        input(f"\nCurrent Turn: {playerNames[currentPlayer]}({colourOrder[currentColour]}) Press enter to roll dice.")
         rollDice()
         Board.updateScreen()
 
 
 def rollDice():
     global sixesRolled, tempState
-    roll = random.randint(1, 6)
+    roll = random.randint(5, 6)
     print(f"{playerNames[currentPlayer]} rolled {roll}")
     if roll == 6:
         sixesRolled += 1
         if sixesRolled != 3:
             if sixesRolled == 1:
-                tempState = (cp.copy(Board.Tokens), cp.copy(Board.playerHasKilled[currentPlayer]), cp.copy(Board.tokenHoused[currentPlayer]), cp.copy(Board.blocks[currentPlayer]))
+                tempState = [cp.deepcopy(Board.Tokens), cp.copy(Board.playerHasKilled[currentPlayer]), cp.copy(Board.tokenHoused[currentPlayer]), cp.copy(Board.blocks[currentPlayer])]
             moveableTokens(playerColours[currentPlayer], roll)
         else:
-            Board.Tokens, Board.playerHasKilled[currentPlayer], Board.tokenHoused[currentPlayer], Board.blocks[currentPlayer] = tempState
+            # print(tempState)
+            Board.blocks[currentPlayer] = tempState.pop()
+            Board.tokenHoused[currentPlayer] = tempState.pop()
+            Board.playerHasKilled[currentPlayer] = tempState.pop()
+            Board.Tokens = tempState.pop()
+            # print(Board.Tokens)
+            # print(Board.blocks[currentPlayer])
+            # print(Board.tokenHoused[currentPlayer])
+            # print(Board.playerHasKilled[currentPlayer])
             print(f"{playerNames[currentPlayer]} rolled three cosecutive sixes! Cancelling previous moves.")
             sixesRolled = 0
             
@@ -84,7 +112,7 @@ def moveableTokens(colour, roll):
     possibleTokens = []
     for i in range(4):
         if canBeMoved(colour, i, roll):
-            possibleTokens.append(i)
+            possibleTokens.append(i+1)
 
     if len(possibleTokens) >= 1:  # if there are atleast 2 moveable tokens
         if len(possibleTokens) >= 2:
@@ -98,10 +126,9 @@ def moveableTokens(colour, roll):
                 except ValueError:
                     print(f"Invalid input.")
         else:
-            answer = 0
-            won = Board.moveToken(colour, possibleTokens[0], roll)
-        won = Board.moveToken(colour, possibleTokens[answer], roll)
-        print(f"{playerNames[currentPlayer]} has moved token {possibleTokens[answer]}")
+            answer = possibleTokens[0]
+        won = Board.moveToken(colour, answer-1, roll)
+        print(f"{playerNames[currentPlayer]} has moved token {answer}")
         if won:
             print(f"{playerNames[colour]} has won the game!")  # above loop doesnt returns false
             playerNames.pop(currentPlayer)
@@ -123,23 +150,21 @@ def canBeMoved(colour, num, roll):
         else:
             return False
     else:
-        for i in Board.blocks:
-            if i == colour:  # colour of block matches with current token
-                continue
-            for j in i:
-                if j <= (pos + roll) % 52:
-                    return False  # there is a block in way, cant pass
+        for steps in range(1, roll+1):
+            for col in range(4):
+                if (pos + steps) % 52 in Board.blocks[col] and col != colour:
+                    return False
     return True  # can move in all other scenarios
 
 
 # checks the next player's turn in clockwise order
 def nextTurn():
     global currentPlayer, currentColour
+    currentColour = (currentColour + 1) % 4  # increment currentColour
     currentPlayer = -1
     for i in range(len(playerColours)):
         if playerColours[i] == currentColour:
             currentPlayer = i
-    currentColour = (currentColour + 1) % 4  # increment currentColour
     if currentPlayer == -1:  # if no player has current colour
         nextTurn()  # recursively call next turn which will incremement currentColour until playerColour matches
 
