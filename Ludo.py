@@ -1,7 +1,7 @@
 import Game
 
 
-def main(): #this function acts like main()
+def main():
     Game.play()
 
 if __name__ == '__main__':
