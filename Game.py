@@ -120,7 +120,6 @@ def moveableTokens(colour, roll):
             while(True):
                 try:
                     answer = int(input(f"Select a token to move{possibleTokens}: "))
-                    answer = random.choice(possibleTokens)
                     if answer in possibleTokens:
                         break
                     else:
