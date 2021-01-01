@@ -72,7 +72,7 @@ def createBoard(x, y, smallSquare):
 
     # draw common slots
     for i in range(52):
-        xAxis, yAxis = commonSlots[i]
+        xAxis, yAxis = commonSlots[i]   
         pygame.draw.rect(screen, blackColor, [x + xAxis*smallSquare, y + yAxis*smallSquare, smallSquare, smallSquare], 1)
 
     #draw starting squares and triangles
